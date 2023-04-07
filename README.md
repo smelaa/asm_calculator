@@ -12,10 +12,10 @@ Wprowadź słowny opis działania: osiem minus zero\
 Wynikiem jest: osiem\
 \
 Wprowadź słowny opis działania: czy plus dwa\
-Błąd danych wejściowych!
+Błąd danych wejściowych!\
 \
 Pliki: DOSXNT.386, DOSXNT.EXT, LINK.EXE, ML.ERR, ML.EXE to pliki kompilatora.\
 Plik calc.asm to napisany program (in progress).\
-Aby go uruchomić należy pobrać i uruchomić DOSBox'a, wejść do odpowiedniego katalogu i wywołać następujące polecenia:\
+Aby go uruchomić należy pobrać i uruchomić DOSBoxa, wejść do odpowiedniego katalogu i wywołać następujące polecenia:\
 ml calc.asm\
 calc.asm
