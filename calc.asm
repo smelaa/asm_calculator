@@ -14,37 +14,39 @@ data1 segment
     eight   db 5, "osiem$",    8
     nine    db 8, "dziewiec$", 9
 
-    ten         db 8d,  "dziesiec$",       10d
-    eleven      db 10d, "jedenascie$",     11d
-    twelve      db 9d,  "dwanascie$",      12d
-    thirteen    db 10d, "trzynascie$",     13d
-    fourteen    db 11d, "czternascie$",    14d
-    fifteen     db 10d, "pietnascie$",     15d
-    sixteen     db 10d, "szesnascie$",     16d
-    seventenn   db 12d, "siedemnascie$",   17d
-    eighteen    db 11d, "osiemnascie$",    18d
-    nineteen    db 14d, "dziewietnascie$", 19d
+    ten         db 8,  "dziesiec$",       10
+    eleven      db 10, "jedenascie$",     11
+    twelve      db 9,  "dwanascie$",      12
+    thirteen    db 10, "trzynascie$",     13
+    fourteen    db 11, "czternascie$",    14
+    fifteen     db 10, "pietnascie$",     15
+    sixteen     db 10, "szesnascie$",     16
+    seventenn   db 12, "siedemnascie$",   17
+    eighteen    db 11, "osiemnascie$",    18
+    nineteen    db 14, "dziewietnascie$", 19
 
-    twenty  db 11d, "dwadziescia$",    20d
-    thirty  db 11d, "trzydziesci$",    30d
-    fourty  db 12d, "czterdziesci$",   40d
-    fifty   db 12d, "piecdziesiat$",   50d
-    sixty   db 13d, "szescdziesiat$",  60d
-    seventy db 14d, "siedemdziesiat$", 70d
-    eighty  db 13d, "osiemdziesiat$",  80d
+    twenty  db 11, "dwadziescia$",    20
+    thirty  db 11, "trzydziesci$",    30
+    fourty  db 12, "czterdziesci$",   40
+    fifty   db 12, "piecdziesiat$",   50
+    sixty   db 13, "szescdziesiat$",  60
+    seventy db 14, "siedemdziesiat$", 70
+    eighty  db 13, "osiemdziesiat$",  80
 
-    plus     db 4d, "plus$"
-    minus    db 5d, "minus$"
-    multiply db 4d, "razy$"
+    plus     db 4, "plus$"
+    minus    db 5, "minus$"
+    multiply db 4, "razy$"
+
+    res1     dw 0
 
     err1    db "Blad danych wejsciowych!$"
 
     err2    db "Zla liczba argumentow$"
 
-    buff1 db 50, ?, 55 dup("$") ;bufor na znaki wprowadzone przez uzytkownika
+    buff1 db 50, ?, 51 dup("$") ;bufor na znaki wprowadzone przez uzytkownika
 
     ;arg db start, end, value
-    arg1        db 0,0,0,"$"
+    arg1        db 0,0,0
     op          db 0,0,0
     arg2        db 0,0,0
 
@@ -97,9 +99,9 @@ start1:
         inc     ch
 
     ;get_op_start:
-    inc     ch ;przejdz do pierwszego znaku po spacji
     inc     bx ;inkrementuj wskaźnik na kolejny znak
     mov     byte ptr ds:[op], ch
+    inc     ch 
 
     find_op_end:
         mov     dh, byte ptr ds:[buff1+bx] ;zaladuj znak z bufora
@@ -122,11 +124,11 @@ start1:
         inc     ch
     
     ;get_arg2_start:
-    inc     ch ;przejdz do pierwszej pozycji argumentu po spacji
     inc     bx ;inkrementuj wskaźnik na kolejny znak
     cmp     cl, ch ;jesli dotarl do konca stringa to podano za malo argumentow
     je      exception2 ;wyrzuc wyjatek
     mov     byte ptr ds:[arg2], ch
+    inc     ch ;przejdz do pierwszej pozycji argumentu po spacji
 
     ;get_arg2_end:
     mov     byte ptr ds:[arg2+1], cl
@@ -165,6 +167,72 @@ start1:
 
     call    exception1 ;jezeli nie znaleziono dopasowania to wyrzuc blad
     end_comparing_arg1:
+
+    ;rozpoznaj druga cyfre
+    mov     di, offset zero
+    call    compare_arg2
+
+    mov     di, offset one
+    call    compare_arg2
+
+    mov     di, offset two
+    call    compare_arg2
+
+    mov     di, offset three
+    call    compare_arg2
+
+    mov     di, offset four
+    call    compare_arg2
+
+    mov     di, offset five
+    call    compare_arg2
+
+    mov     di, offset six
+    call    compare_arg2
+
+    mov     di, offset seven
+    call    compare_arg2
+
+    mov     di, offset eight
+    call    compare_arg2
+
+    mov     di, offset nine
+    call    compare_arg2
+
+    call    exception1 ;jezeli nie znaleziono dopasowania to wyrzuc blad
+    end_comparing_arg2:
+
+    ;rozpoznaj operator
+    ;dodawanie
+    mov     al, byte ptr ds:[arg1+2]
+    add     al, byte ptr ds:[arg2+2]
+    mov     ah, 0
+    mov     word ptr ds:[res1], ax
+    
+    mov     di, offset plus
+    call    compare_op
+
+    ;odejmowanie
+    mov     al, byte ptr ds:[arg1+2]
+    sub     al, byte ptr ds:[arg2+2] 
+    mov     ah, 0
+    mov     word ptr ds:[res1], ax
+
+    mov     di, offset minus
+    call    compare_op
+
+    ;mnozenie
+    mov     ax, 0
+    mov     al, byte ptr ds:[arg1+2]
+    mul     byte ptr ds:[arg2+2]
+    mov     word ptr ds:[res1], ax
+
+    mov     di, offset multiply
+    call    compare_op
+
+    call    exception1 ;jezeli nie znaleziono dopasowania to wyrzuc blad
+    end_comparing_op:
+
     
 
     call    printnline ;wypisanie tego co zostalo wczytane
@@ -207,7 +275,7 @@ start1:
         call    print1
         jmp     end_prog   
 ;============================================
-;paramert di - offset na liczbę (one, two itd.)
+;parametr di - offset na liczbę (one, two itd.)
     compare_arg1:
         mov     ax, seg data1
         mov     ds, ax
@@ -255,6 +323,103 @@ start1:
             mov     al, byte ptr ds:[di]
             mov     byte ptr ds:[arg1+2], al ;ustaw wartosc argumentu
             jmp     end_comparing_arg1
+
+;============================================
+;UWAGA - nie robie jednej funkcji dla porownania obu argumentow, zeby latwo wrocic do end_comparing_argX
+;parametr di - offset na liczbę (one, two itd.)
+    compare_arg2:
+        mov     ax, seg data1
+        mov     ds, ax
+
+        mov     al, byte ptr ds:[arg2+1] ;do al arg_end
+        mov     ah, byte ptr ds:[arg2] ;do ah arg_start
+        sub     al, ah ;odejmnij i zdobadz dlugosc arg2 w al
+
+        mov     ah, byte ptr ds:[di] ;do ah dlugosc parametru (na pierwszym bajcie mam zawsze dlugosci)
+
+        cmp     al, ah ;jesli dlugosc tych slow sie rozni to skoncz porownanie
+        jne     end_comp2
+
+        mov     cl, al ;do cl zapisuje sobie dlugosc slowa
+
+        inc     di ;di przesuwam na pierwszy znak parametru
+
+        mov     bx, 2 ;ustawiam bx jako znacznik na pierwszy znak arg2 w buforze
+        mov     bh, 0 
+        add     bl, byte ptr ds:[arg2]
+
+        mov     ch, 1 ;ustawiam licznik petli
+
+        comp2:
+            mov     dh, byte ptr ds:[buff1+bx] ;do dh wrzucam literke z arg2
+            mov     dl, byte ptr ds:[di] ;do dl wrzucam literke z parametru
+
+            cmp     dh, dl ;porownuje obie literki
+            jne     end_comp2 ;jesli sa rozne to nie sprawdzam dalej
+
+            cmp     ch, cl ;jesli dotarlam do konca petli to znalzlam argument
+            je      is_found2
+
+            inc bx ;zwiekszam wskazniki i liczniki petli
+            inc di
+            inc ch
+        jmp comp2
+
+        end_comp2:
+            ret
+
+        is_found2:
+            inc     di
+            inc     di ;ustaw di na wartosc liczby
+            mov     al, byte ptr ds:[di]
+            mov     byte ptr ds:[arg2+2], al ;ustaw wartosc argumentu
+            jmp     end_comparing_arg2
+
+;============================================
+;parametr di - offset na operator (plus, minus, razy)
+    compare_op:
+        mov     ax, seg data1
+        mov     ds, ax
+
+        mov     al, byte ptr ds:[op+1] ;do al op_end
+        mov     ah, byte ptr ds:[op] ;do ah op_start
+        sub     al, ah ;odejmnij i zdobadz dlugosc op w al
+
+        mov     ah, byte ptr ds:[di] ;do ah dlugosc parametru (na pierwszym bajcie mam zawsze dlugosci)
+
+        cmp     al, ah ;jesli dlugosc tych slow sie rozni to skoncz porownanie
+        jne     end_comp3
+
+        mov     cl, al ;do cl zapisuje sobie dlugosc slowa
+
+        inc     di ;di przesuwam na pierwszy znak parametru
+
+        mov     bx, 2 ;ustawiam bx jako znacznik na pierwszy znak arg1 w buforze
+        mov     bh, 0 
+        add     bl, byte ptr ds:[op]
+
+        mov     ch, 1 ;ustawiam licznik petli
+
+        comp3:
+            mov     dh, byte ptr ds:[buff1+bx] ;do dh wrzucam literke z arg1
+            mov     dl, byte ptr ds:[di] ;do dl wrzucam literke z parametru
+
+            cmp     dh, dl ;porownuje obie literki
+            jne     end_comp3 ;jesli sa rozne to nie sprawdzam dalej
+
+            cmp     ch, cl ;jesli dotarlam do konca petli to znalzlam argument
+            je      is_found3
+
+            inc bx ;zwiekszam wskazniki i liczniki petli
+            inc di
+            inc ch
+        jmp comp3
+
+        end_comp3:
+            ret
+
+        is_found3:
+            jmp     end_comparing_op
 
 code1 ends
 
