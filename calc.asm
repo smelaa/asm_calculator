@@ -21,17 +21,17 @@ data1 segment
     fourteen    db 11, "czternascie$",    14
     fifteen     db 10, "pietnascie$",     15
     sixteen     db 10, "szesnascie$",     16
-    seventenn   db 12, "siedemnascie$",   17
+    seventen    db 12, "siedemnascie$",   17
     eighteen    db 11, "osiemnascie$",    18
     nineteen    db 14, "dziewietnascie$", 19
 
-    twenty  db 11, "dwadziescia$",    20
-    thirty  db 11, "trzydziesci$",    30
-    fourty  db 12, "czterdziesci$",   40
-    fifty   db 12, "piecdziesiat$",   50
-    sixty   db 13, "szescdziesiat$",  60
-    seventy db 14, "siedemdziesiat$", 70
-    eighty  db 13, "osiemdziesiat$",  80
+    twenty  db 11, "dwadziescia $",    20
+    thirty  db 11, "trzydziesci $",    30
+    fourty  db 12, "czterdziesci $",   40
+    fifty   db 12, "piecdziesiat $",   50
+    sixty   db 13, "szescdziesiat $",  60
+    seventy db 14, "siedemdziesiat $", 70
+    eighty  db 13, "osiemdziesiat $",  80
 
     plus     db 4, "plus$"
     minus    db 5, "minus$"
@@ -65,12 +65,14 @@ start1:
     mov     dx,offset welc ;wypisanie powitania
     call    print1
 
-    mov     ax, seg data1 ;wczytanie danych do bufora
+    ;wczytanie danych do bufora
+    mov     ax, seg data1 
     mov     ds, ax
     mov     dx, offset buff1
     mov     ah, 0ah
     int     21h
 
+    ;znalezienie poczatkow i koncow argumentów i operatora
     mov     ax, seg data1; znalezienie pierwszego arumentu
     mov     ds, ax
     mov     cl, byte ptr ds:[buff1+1] ;zapisanie rozmiaru bufora danych wpisanych przez użytkownika
@@ -84,7 +86,7 @@ start1:
         mov     dh, byte ptr ds:[buff1+bx] ;zaladuj znak z bufora
 
         cmp     cl, ch ;jesli dotarl do konca stringa to podano za malo argumentow
-        je      exception2 ;wyrzuc wyjatek
+        je      exception1 ;wyrzuc wyjatek
 
         cmp     dh, 32 ;porownaj czy znak jest spacja, 32-kod ASCII spacji
         je      get_arg1_end ;jesli tak to zapisz koniec argumentu
@@ -107,7 +109,7 @@ start1:
         mov     dh, byte ptr ds:[buff1+bx] ;zaladuj znak z bufora
 
         cmp     cl, ch ;jesli dotarl do konca stringa to podano za malo argumentow
-        je      exception2 ;wyrzuc wyjatek
+        je      exception1 ;wyrzuc wyjatek
 
         cmp     dh, 32 ;porownaj czy znak jest spacja, 32-kod ASCII spacji
         je      get_op_end ;jesli tak to zapisz koniec argumentu
@@ -118,7 +120,7 @@ start1:
 
     get_op_end:
         cmp     cl, ch ;jesli dotarl do konca stringa to podano za malo argumentow
-        je      exception2 ;wyrzuc wyjatek
+        je      exception1 ;wyrzuc wyjatek
         dec     ch ;przesun ch na pierwszy znak przed spacja
         mov     byte ptr ds:[op+1], ch
         inc     ch
@@ -126,7 +128,7 @@ start1:
     ;get_arg2_start:
     inc     bx ;inkrementuj wskaźnik na kolejny znak
     cmp     cl, ch ;jesli dotarl do konca stringa to podano za malo argumentow
-    je      exception2 ;wyrzuc wyjatek
+    je      exception1 ;wyrzuc wyjatek
     mov     byte ptr ds:[arg2], ch
     inc     ch ;przejdz do pierwszej pozycji argumentu po spacji
 
@@ -233,13 +235,154 @@ start1:
     call    exception1 ;jezeli nie znaleziono dopasowania to wyrzuc blad
     end_comparing_op:
 
-    
-
-    call    printnline ;wypisanie tego co zostalo wczytane
+    ;wprzygotowanie do wypisania wyniku
+    call    printnline
     mov     dx, offset resmes
     call    print1
-    mov     dx, offset buff1+2 
-    call    print1
+
+    ;parsowanie wyniku
+    mov     bx, word ptr ds:[res1] ;wrzucenie  wyniku do bx
+    cmp     bx, 20 ;jezeli wynik jest niemniejszy niz 20 to parsuj dziesiatki
+    jge     parse_dozens
+    cmp     bx, 10 ;jezeli wynik jest niemniejszy niz 10 to pasuj nastki
+    jge     parse_ovdozen
+    jmp     parse_units ;w innym wypadku parsuj jednosci
+
+    parse_dozens: ;gdy znajde cyfre dziesiatek to w dx jest offset na slowny zapis, a w bx jest liczba po odjeciu dziesiatek
+        mov     dx, offset twenty+1
+        sub     bx, 20
+        cmp     bx, 0
+        je      print_result
+        cmp     bx, 10
+        jl      print_dozens
+
+        mov     dx, offset thirty+1
+        sub     bx, 10
+        cmp     bx, 0
+        je      print_result
+        cmp     bx, 10
+        jl      print_dozens
+
+        mov     dx, offset fourty+1
+        sub     bx, 10
+        cmp     bx, 0
+        je      print_result
+        cmp     bx, 10
+        jl      print_dozens
+
+        mov     dx, offset fifty+1
+        sub     bx, 10
+        cmp     bx, 0
+        je      print_result
+        cmp     bx, 10
+        jl      print_dozens
+
+        mov     dx, offset sixty+1
+        sub     bx, 10
+        cmp     bx, 0
+        je      print_result
+        cmp     bx, 10
+        jl      print_dozens
+
+        mov     dx, offset seventy+1
+        sub     bx, 10
+        cmp     bx, 0
+        je      print_result
+        cmp     bx, 10
+        jl      print_dozens
+
+        mov     dx, offset eighty+1
+        sub     bx, 10
+        cmp     bx, 0
+        je      print_result
+        jmp     print_dozens
+
+    print_dozens:
+        call    print1
+        jmp     parse_units
+
+    parse_ovdozen:
+        mov     dx, offset ten+1
+        cmp     bx, 10
+        je      print_result
+
+        mov     dx, offset eleven+1
+        cmp     bx, 11
+        je      print_result
+
+        mov     dx, offset twelve+1
+        cmp     bx, 12
+        je      print_result
+
+        mov     dx, offset thirteen+1
+        cmp     bx, 13
+        je      print_result
+
+        mov     dx, offset fourteen+1
+        cmp     bx, 14
+        je      print_result
+
+        mov     dx, offset fifteen+1
+        cmp     bx, 15
+        je      print_result
+
+        mov     dx, offset sixteen+1
+        cmp     bx, 16
+        je      print_result
+
+        mov     dx, offset seventen+1
+        cmp     bx, 17
+        je      print_result
+
+        mov     dx, offset eighteen+1
+        cmp     bx, 18
+        je      print_result
+
+        mov     dx, offset nineteen+1
+        jmp      print_result
+
+    parse_units:
+        mov     dx, offset nine+1
+        cmp     bx, 9
+        je      print_result
+
+        mov     dx, offset eight+1
+        cmp     bx, 8
+        je      print_result
+
+        mov     dx, offset seven+1
+        cmp     bx, 7
+        je      print_result
+
+        mov     dx, offset six+1
+        cmp     bx, 6
+        je      print_result
+
+        mov     dx, offset five+1
+        cmp     bx, 5
+        je      print_result
+
+        mov     dx, offset four+1
+        cmp     bx, 4
+        je      print_result
+
+        mov     dx, offset three+1
+        cmp     bx, 3
+        je      print_result
+
+        mov     dx, offset two+1
+        cmp     bx, 2
+        je      print_result
+
+        mov     dx, offset one+1
+        cmp     bx, 1
+        je      print_result
+
+        mov     dx, offset zero+1
+        jmp     print_result
+
+    print_result:
+        call    print1
 
     end_prog:
         mov     al,0 ;koniec programu
@@ -267,13 +410,7 @@ start1:
         call    printnline
         mov     dx, offset err1
         call    print1
-        jmp     end_prog 
-;============================================
-    exception2:
-        call    printnline
-        mov     dx, offset err2
-        call    print1
-        jmp     end_prog   
+        jmp     end_prog  
 ;============================================
 ;parametr di - offset na liczbę (one, two itd.)
     compare_arg1:
