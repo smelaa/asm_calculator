@@ -34,7 +34,7 @@ data1 segment
     eighty  db 13, "osiemdziesiat $",  80
 
     plus     db 4, "plus$"
-    minus    db 5, "minus$"
+    minus    db 5, "minus $"
     multiply db 4, "razy$"
 
     res1     dw 0
@@ -216,8 +216,10 @@ start1:
 
     ;odejmowanie
     mov     al, byte ptr ds:[arg1+2]
-    sub     al, byte ptr ds:[arg2+2] 
+    mov     bl, byte ptr ds:[arg2+2] 
     mov     ah, 0
+    mov     bh, 0
+    sub     ax, bx
     mov     word ptr ds:[res1], ax
 
     mov     di, offset minus
@@ -242,11 +244,21 @@ start1:
 
     ;parsowanie wyniku
     mov     bx, word ptr ds:[res1] ;wrzucenie  wyniku do bx
+    cmp     bx, 80
+    jg      parse_negative
     cmp     bx, 20 ;jezeli wynik jest niemniejszy niz 20 to parsuj dziesiatki
     jge     parse_dozens
     cmp     bx, 10 ;jezeli wynik jest niemniejszy niz 10 to pasuj nastki
     jge     parse_ovdozen
-    jmp     parse_units ;w innym wypadku parsuj jednosci
+    cmp     bx, 0 ;jezeli wynik jest niemniejszy niz 0 to pasuj jednosci
+    jge     parse_units 
+    jmp     parse_negative ;w innym wypadku parsuj ujemne
+
+    parse_negative:
+        mov     dx, offset minus+1 ;wypisz minus
+        call    print1
+        neg     bx ;do bx wrzuc liczbe przeciwna
+        jmp     parse_units ;parsuj jednosci (maksymalna ujemna to -8)
 
     parse_dozens: ;gdy znajde cyfre dziesiatek to w dx jest offset na slowny zapis, a w bx jest liczba po odjeciu dziesiatek
         mov     dx, offset twenty+1
