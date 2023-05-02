@@ -15,6 +15,7 @@ Wprowadź słowny opis działania: czy plus dwa\
 Błąd danych wejściowych!\
 \
 Pliki: DOSXNT.386, DOSXNT.EXT, LINK.EXE, ML.ERR, ML.EXE to pliki kompilatora.\
+Plik TD.exe to plik debuggera.\
 Plik calc.asm to napisany program (in progress).\
 Aby go uruchomić należy pobrać i uruchomić DOSBoxa, wejść do odpowiedniego katalogu i wywołać następujące polecenia:\
 ml calc.asm\
